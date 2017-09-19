@@ -1,0 +1,15 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">Test Task</a>
+  <button class="navbar-toggler hidden-sm-up" type="button" (click)="isCollapsed = !isCollapsed" data-target="#navbar"
+          [attr.aria-expanded]="!isCollapsed" aria-controls="navbar" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div [ngbCollapse]="isCollapsed" class="collapse navbar-collapse" id="navbar">
+    <div *ngIf="currentUser" class="navbar-nav mr-auto">
+      <a class="nav-item nav-link" routerLink="/" routerLinkActive="active">Home</a>
+    </div>
+    <div *ngIf="currentUser" class="navbar-nav ml-auto">
+      <a class="nav-item nav-link" routerLink="/login" routerLinkActive="active">Logout</a>
+    </div>
+  </div>
+</nav>

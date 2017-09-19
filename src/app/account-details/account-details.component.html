@@ -1,0 +1,144 @@
+<app-navbar></app-navbar>
+<div class="container-fluid mr-3">
+	<div class="row">
+		<div class="col-12">
+			<h2 class="mt-3 mb-4">Account details
+				<button class="btn btn-sm btn-outline-primary float-right" (click)="addCreditCard()">Add Card</button>
+			</h2>
+		</div>
+	</div>
+	<div class="row justify-content-center">
+		<div *ngIf="loading" class="col-12">
+			<div class="loader"></div>
+		</div>
+		<div *ngIf="!loading" class="col-3 border border-dark border-left-0 border-top-0 border-bottom-0">
+			<form #accountForm="ngForm" (ngSubmit)="update(user.id, accountForm.value, accountForm.valid)" novalidate>
+				<dl>
+					<dt>Firstname:</dt>
+					<dd *ngIf="!isEditMode">{{ user.firstName }}</dd>
+					<dd *ngIf="isEditMode">
+						<input type="text" class="form-control" [class.is-invalid]="!firstName.valid && firstName.dirty" name="firstName" [ngModel]="account.firstName" required minlength="2" #firstName="ngModel">
+						<small [hidden]="firstName.valid || (firstName.pristine && !accountForm.submitted)" class="form-text text-danger">
+						Firstname is required (minimum 2 characters)
+						</small>
+					</dd>
+					<dt>Lastname:</dt>
+					<dd *ngIf="!isEditMode">{{ user.lastName }}</dd>
+					<dd *ngIf="isEditMode">
+						<input type="text" class="form-control" [class.is-invalid]="!lastName.valid && lastName.dirty" name="lastName" [ngModel]="account.lastName" required minlength="3" #lastName="ngModel">
+						<small [hidden]="lastName.valid || (lastName.pristine && !accountForm.submitted)" class="form-text text-danger">
+							Lastname is required (minimum 2 characters)
+						</small>
+					</dd>
+					<dt>Username:</dt>
+					<dd *ngIf="!isEditMode">{{ user.username }}</dd>
+					<dd *ngIf="isEditMode">
+						<input type="text" class="form-control" [class.is-invalid]="!username.valid && username.dirty" name="username" [ngModel]="account.username" required minlength="3" #username="ngModel">
+						<small [hidden]="username.valid || (username.pristine && !accountForm.submitted)" class="form-text text-danger">
+							Username is required (minimum 3 characters)
+						</small>
+					</dd>
+					<dt>Email:</dt>
+					<dd *ngIf="!isEditMode">{{ user.email }}</dd>
+					<dd *ngIf="isEditMode">
+						<input type="email" class="form-control" [class.is-invalid]="!email.valid && email.dirty" name="email" [ngModel]="account.email" required email #email="ngModel">
+						<small [hidden]="email.valid || (email.pristine && !accountForm.submitted)" class="form-text text-danger">
+							Invalid email
+						</small>
+					</dd>
+					<dt>Status:</dt>
+					<dd *ngIf="!isEditMode">{{ user.enabled ? 'Enabled' : 'Disabled' }}</dd>
+					<dd *ngIf="isEditMode">
+						<div class="form-check form-check-inline">
+							<label class="form-check-label">
+								<input class="form-check-input" type="radio" name="enabled" [checked]="account.enabled ? false : true" [ngModel]="account.enabled" #enabled="ngModel" [value]="false"> Disabled
+							</label>
+						</div>
+						<div class="form-check form-check-inline">
+							<label class="form-check-label">
+								<input class="form-check-input" type="radio" name="enabled" [checked]="account.enabled ? true : false" [ngModel]="account.enabled" #enabled="ngModel" [value]="true"> Enabled
+							</label>
+						</div>
+					</dd>
+				</dl>
+				<button *ngIf="!isEditMode" type="button" class="btn btn-outline-primary" (click)="edit()">Edit</button>
+				<button *ngIf="isEditMode" type="submit" class="btn btn-outline-primary" [disabled]="!accountForm.valid">Update</button>
+				<button *ngIf="isEditMode" type="button" class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
+			</form>
+		</div>
+		<div *ngIf="!loading" class="col-9">
+			<p *ngIf="cardAddMode" class="lead ml-3">Add card info</p>
+			<app-card-form *ngIf="cardAddMode" (onCardCancel)="onCardCancel($event)" (onCardSubmit)="onCardSubmit($event)" [isNew]="true" [customerId]="user.id"></app-card-form>
+			<ngb-tabset *ngIf="!loading && user.cards.length > 0 && !cardAddMode">
+				<ngb-tab *ngFor="let card of user.cards;let i = index;" [title]="'Card ' + (i + 1)">
+					<ng-template ngbTabContent>
+						<div class="mt-3">
+							<p class="lead ml-3">
+							Card: {{ formatCreditCard(card.card) }} <small>({{ card.cardType }})</small>, current balance: {{ card.balance }}
+								<button class="btn btn-sm btn-outline-danger float-right ml-3" type="button" (click)="deleteCreditCard(user.id, card.id)">Delete</button>
+								<button class="btn btn-sm btn-outline-primary float-right" type="button" (click)="editCreditCard(user.id, card)">Edit</button>
+							</p>
+							<hr>
+							<div *ngIf="!cardEditMode && !cardAddMode" class="row ml-3">
+								<form class="form-inline" (ngSubmit)="filterCardTransactions(user.id, card.id, i)">
+									<div class="form-group">
+										<div class="input-group">
+											<label>Type: </label>
+											<select name="transactionType" class="form-control form-control-sm ml-3" [(ngModel)]="transactionsFilter.transactionType">
+												<option value="" [selected]="transactionsFilter.transactionType">Any Type</option>
+												<option value="Debit" [selected]="transactionsFilter.transactionType">Debit</option>
+												<option value="Credit" [selected]="transactionsFilter.transactionType">Credit</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="input-group">
+											<label class="ml-3">From: </label>
+											<input class="form-control form-control-sm ml-3" placeholder="yyyy-mm-dd" name="fromDate" [(ngModel)]="transactionsFilter.fromDate" ngbDatepicker #d1="ngbDatepicker">
+											<button class="input-group-addon" (click)="d1.toggle()" type="button">
+												<img src="/img/calendar-icon.svg" style="width: 1.2rem; height: 1rem; cursor: pointer;"/>
+											</button>
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="input-group">
+											<label class="ml-3">To: </label>
+											<input class="form-control form-control-sm ml-3" placeholder="yyyy-mm-dd" name="toDate" [(ngModel)]="transactionsFilter.toDate" ngbDatepicker #d2="ngbDatepicker">
+											<button class="input-group-addon" (click)="d2.toggle()" type="button">
+												<img src="/img/calendar-icon.svg" style="width: 1.2rem; height: 1rem; cursor: pointer;"/>
+											</button>
+										</div>
+									</div>
+									<button type="submit" class="btn btn-sm btn-outline-primary ml-3" >Filter</button>
+								</form>
+							</div>
+							<p *ngIf="cardEditMode" class="lead ml-3">Edit card info</p>
+						</div>
+						<div class="mt-3">
+							<app-card-form *ngIf="cardEditMode" (onCardCancel)="onCardCancel($event)" (onCardSubmit)="onCardSubmit($event)" [isNew]="cardAddMode" [creditCard]="card" [customerId]="user.id"></app-card-form>
+							<table *ngIf="!cardEditMode && !cardAddMode" class="table table-bordered">
+								<thead class="thead-default">
+									<tr>
+										<th>ID</th>
+										<th>Type</th>
+										<th>Date</th>
+										<th>Amount</th>
+									</tr>
+								</thead>
+								<tbody *ngIf="card.transactions.length">
+									<tr *ngFor="let transaction of card.transactions">
+										<td>{{ transaction.id }}</td>
+										<td>{{ transaction.transactionType }}</td>
+										<td>{{ formatDate(transaction.createdAt) }}</td>
+										<td>{{ transaction.amount }}</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</ng-template>
+				</ngb-tab>
+			</ngb-tabset>
+			<h2 class="text-muted text-center" *ngIf="!loading && !user.cards.length && !cardAddMode">No cards registered</h2>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,43 @@
+<form *ngIf="cardAddMode||cardEditMode" #cardForm="ngForm" (ngSubmit)="updateCreditCard(customerId, cardForm.value, cardForm.valid)" novalidate class="ml-3">
+	<div class="form-row mb-3">
+		<div class="col">
+			<label class="form-control-label" for="card">Card Number<span class="text-danger">*</span></label>
+			<input type="text" class="form-control" [class.is-invalid]="!card.valid && card.dirty" name="card" [ngModel]="creditCard.card" required minlength="16" maxlength="16" #card="ngModel">
+			<small [hidden]="card.valid || (card.pristine && !cardForm.submitted)" class="form-text text-danger">
+				Card number is required and must have 16 characters (only numbers)
+			</small>
+		</div>
+		<div class="col">
+			<label class="form-control-label" for="balance">Current balance<span class="text-danger">*</span></label>
+			<input type="number" class="form-control" [class.is-invalid]="!balance.valid && balance.dirty" name="balance" [ngModel]="creditCard.balance" required #balance="ngModel">
+		</div>
+	</div>
+	<div class="form-row mb-3">
+		<div class="col">
+			<p class="form-control-label" for="cardType">Card Type<span class="text-danger">*</span></p>
+			<div class="form-check form-check-inline">
+				<label class="form-check-label">
+					<input class="form-check-input" type="radio" name="cardType" [checked]="creditCard.cardType == 'Visa' ? false : true" [ngModel]="creditCard.cardType" #cardType="ngModel" value="Visa"> Visa
+				</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<label class="form-check-label">
+					<input class="form-check-input" type="radio" name="cardType" [checked]="creditCard.cardType == 'MasterCard' ? false : true" [ngModel]="creditCard.cardType" #cardType="ngModel" value="MasterCard"> MasterCard
+				</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<label class="form-check-label">
+					<input class="form-check-input" type="radio" name="cardType" [checked]="creditCard.cardType == 'American Express' ? false : true" [ngModel]="creditCard.cardType" #cardType="ngModel" value="American Express"> American Express
+				</label>
+			</div>
+			<div class="form-check form-check-inline">
+				<label class="form-check-label">
+					<input class="form-check-input" type="radio" name="cardType" [checked]="creditCard.cardType == 'Discover Card' ? false : true" [ngModel]="creditCard.cardType" #cardType="ngModel" value="Discover Card"> Discover Card
+				</label>
+			</div>
+		</div>
+	</div>
+	<button *ngIf="isNew" class="btn btn-sm btn-outline-primary mr-3" type="submit" [disabled]="cardForm.invalid">Add</button>
+	<button *ngIf="!isNew" class="btn btn-sm btn-outline-primary mr-3" type="submit" [disabled]="cardForm.invalid">Update</button>
+	<button class="btn btn-sm btn-outline-secondary" type="button" (click)="onCancel()">Cancel</button>
+</form>
