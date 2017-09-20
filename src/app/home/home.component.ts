@@ -25,6 +25,9 @@ export class HomeComponent implements OnInit {
 		this.loading = true;
 		this.apiService.getData('/account').subscribe((users: User[]) => this.users = users, error => {
 			console.log(error);
+			if (error.status === 401) {
+				this.router.navigate(['/login']);
+			}
 		}, () => {
 			this.loading = false;
 		});
